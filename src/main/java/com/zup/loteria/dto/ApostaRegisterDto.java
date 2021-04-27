@@ -15,8 +15,7 @@ public class ApostaRegisterDto {
 	private String numero;
 	
 	public ApostaRegisterDto() {
-		String numero = RandomNumber.getRandomNumber();	
-		this.setNumero(numero);
+		this.numero = "48617";	
 	}
 	
 	public Aposta converter() {
@@ -30,9 +29,6 @@ public class ApostaRegisterDto {
 	}
 	public String getNumero() {
 		return numero;
-	}
-	public void setNumero(String numero) {
-		this.numero = numero;
 	}
 	
 }
