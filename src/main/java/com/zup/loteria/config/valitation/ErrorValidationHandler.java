@@ -2,17 +2,17 @@ package com.zup.loteria.config.valitation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import com.zup.loteria.dto.ErrorFormDto;
 
 @RestControllerAdvice
 public class ErrorValidationHandler {
@@ -22,16 +22,15 @@ public class ErrorValidationHandler {
 	
 	@ResponseStatus(code = HttpStatus.BAD_REQUEST)
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public List<ErrorFormDto> handle(MethodArgumentNotValidException exception){
-		
-		List<ErrorFormDto> dto = new ArrayList<>();
-		exception.getBindingResult().getFieldErrors().forEach(e -> {
-			//internationalization message
-			String message = messageSource.getMessage(e, LocaleContextHolder.getLocale());
-			dto.add(new ErrorFormDto(e.getField(), message));
-			
-		});
-		
-		return dto;
+	public ResponseEntity handle(MethodArgumentNotValidException exception){
+		List<String> globalErrors = new ArrayList<String>();
+		if(exception.getBindingResult().hasFieldErrors()) {			
+			globalErrors = exception.getBindingResult().getFieldErrors()
+					.stream()
+					.map(error -> error.getField() + ": " + messageSource.getMessage(error, LocaleContextHolder.getLocale())) 
+					.collect(Collectors.toList());
+			return new ResponseEntity<List<String>>(globalErrors, HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity(exception.getBindingResult().getAllErrors(),HttpStatus.BAD_REQUEST);
 	}
 }
